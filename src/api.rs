@@ -83,7 +83,7 @@ pub struct Tx {
 
 #[derive(Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct BlockTime {
-    pub timestamp: u64,
+    pub time: u64,
     pub height: u32,
 }
 
@@ -133,9 +133,9 @@ impl Tx {
             TxStatus {
                 confirmed: true,
                 block_height: Some(height),
-                block_time: Some(timestamp),
+                block_time: Some(time),
                 ..
-            } => Some(BlockTime { timestamp, height }),
+            } => Some(BlockTime { time, height }),
             _ => None,
         }
     }

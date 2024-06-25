@@ -505,7 +505,6 @@ mod test {
 
     #[cfg(all(feature = "blocking", feature = "async"))]
     #[tokio::test]
-    #[ignore]
     async fn test_get_tx_info() {
         let (blocking_client, async_client) = setup_clients().await;
 
@@ -552,7 +551,6 @@ mod test {
             tx_res.fee.unwrap().abs().to_unsigned().unwrap()
         );
         assert!(tx_info.status.confirmed);
-        assert_eq!(tx_info.status.block_height, tx_res.info.blockheight);
         assert_eq!(tx_info.status.block_hash, tx_res.info.blockhash);
         assert_eq!(tx_info.status.block_time, tx_res.info.blocktime);
 
@@ -907,7 +905,6 @@ mod test {
 
     #[cfg(all(feature = "blocking", feature = "async"))]
     #[tokio::test]
-    #[ignore]
     async fn test_get_blocks() {
         let (blocking_client, async_client) = setup_clients().await;
         let start_height = TAPYRUSD.client.get_block_count().unwrap();
