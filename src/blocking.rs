@@ -20,10 +20,10 @@ use log::{debug, error, info, trace};
 
 use minreq::{Proxy, Request};
 
-use bitcoin::consensus::{deserialize, serialize, Decodable};
-use bitcoin::hashes::{sha256, Hash};
-use bitcoin::hex::{DisplayHex, FromHex};
-use bitcoin::{
+use tapyrus::consensus::{deserialize, serialize, Decodable};
+use tapyrus::hashes::{sha256, Hash};
+use tapyrus::hex::{DisplayHex, FromHex};
+use tapyrus::{
     block::Header as BlockHeader, Block, BlockHash, MerkleBlock, Script, Transaction, Txid,
 };
 
@@ -118,7 +118,7 @@ impl BlockingClient {
                 let hex_str = resp.as_str().map_err(Error::Minreq)?;
                 let hex_vec = Vec::from_hex(hex_str).unwrap();
                 deserialize::<T>(&hex_vec)
-                    .map_err(Error::BitcoinEncoding)
+                    .map_err(Error::TapyrusEncoding)
                     .map(|r| Some(r))
             }
             Err(e) => Err(Error::Minreq(e)),
@@ -135,7 +135,7 @@ impl BlockingClient {
             Ok(resp) => {
                 let hex_str = resp.as_str().map_err(Error::Minreq)?;
                 let hex_vec = Vec::from_hex(hex_str).unwrap();
-                deserialize::<T>(&hex_vec).map_err(Error::BitcoinEncoding)
+                deserialize::<T>(&hex_vec).map_err(Error::TapyrusEncoding)
             }
             Err(e) => Err(Error::Minreq(e)),
         }

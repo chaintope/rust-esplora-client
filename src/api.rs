@@ -2,10 +2,10 @@
 //!
 //! see: <https://github.com/Blockstream/esplora/blob/master/API.md>
 
-pub use bitcoin::consensus::{deserialize, serialize};
-pub use bitcoin::hex::FromHex;
-use bitcoin::Weight;
-pub use bitcoin::{
+pub use tapyrus::consensus::{deserialize, serialize};
+pub use tapyrus::hex::FromHex;
+use tapyrus::Weight;
+pub use tapyrus::{
     transaction, Amount, BlockHash, OutPoint, ScriptBuf, Transaction, TxIn, TxOut, Txid, Witness,
 };
 
@@ -83,7 +83,7 @@ pub struct Tx {
 
 #[derive(Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct BlockTime {
-    pub timestamp: u64,
+    pub time: u64,
     pub height: u32,
 }
 
@@ -93,15 +93,15 @@ pub struct BlockSummary {
     #[serde(flatten)]
     pub time: BlockTime,
     /// Hash of the previous block, will be `None` for the genesis block.
-    pub previousblockhash: Option<bitcoin::BlockHash>,
-    pub merkle_root: bitcoin::hash_types::TxMerkleNode,
+    pub previousblockhash: Option<tapyrus::BlockHash>,
+    pub merkle_root: tapyrus::hash_types::TxMerkleNode,
 }
 
 impl Tx {
     pub fn to_tx(&self) -> Transaction {
         Transaction {
             version: transaction::Version::non_standard(self.version),
-            lock_time: bitcoin::absolute::LockTime::from_consensus(self.locktime),
+            lock_time: tapyrus::absolute::LockTime::from_consensus(self.locktime),
             input: self
                 .vin
                 .iter()
@@ -112,7 +112,7 @@ impl Tx {
                         vout: vin.vout,
                     },
                     script_sig: vin.scriptsig,
-                    sequence: bitcoin::Sequence(vin.sequence),
+                    sequence: tapyrus::Sequence(vin.sequence),
                     witness: Witness::from_slice(&vin.witness),
                 })
                 .collect(),
@@ -121,7 +121,7 @@ impl Tx {
                 .iter()
                 .cloned()
                 .map(|vout| TxOut {
-                    value: Amount::from_sat(vout.value),
+                    value: Amount::from_tap(vout.value),
                     script_pubkey: vout.scriptpubkey,
                 })
                 .collect(),
@@ -133,9 +133,9 @@ impl Tx {
             TxStatus {
                 confirmed: true,
                 block_height: Some(height),
-                block_time: Some(timestamp),
+                block_time: Some(time),
                 ..
-            } => Some(BlockTime { timestamp, height }),
+            } => Some(BlockTime { time, height }),
             _ => None,
         }
     }
@@ -147,7 +147,7 @@ impl Tx {
             .map(|vin| {
                 vin.prevout.map(|po| TxOut {
                     script_pubkey: po.scriptpubkey,
-                    value: Amount::from_sat(po.value),
+                    value: Amount::from_tap(po.value),
                 })
             })
             .collect()
@@ -158,7 +158,7 @@ impl Tx {
     }
 
     pub fn fee(&self) -> Amount {
-        Amount::from_sat(self.fee)
+        Amount::from_tap(self.fee)
     }
 }
 

@@ -14,10 +14,10 @@
 use std::collections::HashMap;
 use std::str::FromStr;
 
-use bitcoin::consensus::{deserialize, serialize};
-use bitcoin::hashes::{sha256, Hash};
-use bitcoin::hex::{DisplayHex, FromHex};
-use bitcoin::{
+use tapyrus::consensus::{deserialize, serialize};
+use tapyrus::hashes::{sha256, Hash};
+use tapyrus::hex::{DisplayHex, FromHex};
+use tapyrus::{
     block::Header as BlockHeader, Block, BlockHash, MerkleBlock, Script, Transaction, Txid,
 };
 
