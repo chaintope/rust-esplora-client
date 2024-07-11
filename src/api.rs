@@ -4,7 +4,7 @@
 
 pub use tapyrus::consensus::{deserialize, serialize};
 pub use tapyrus::hex::FromHex;
-use tapyrus::Weight;
+use tapyrus::{MalFixTxid, Weight};
 pub use tapyrus::{
     transaction, Amount, BlockHash, OutPoint, ScriptBuf, Transaction, TxIn, TxOut, Txid, Witness,
 };
@@ -19,7 +19,7 @@ pub struct PrevOut {
 
 #[derive(Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Vin {
-    pub txid: Txid,
+    pub txid: MalFixTxid,
     pub vout: u32,
     // None if coinbase
     pub prevout: Option<PrevOut>,
@@ -47,14 +47,14 @@ pub struct TxStatus {
 #[derive(Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct MerkleProof {
     pub block_height: u32,
-    pub merkle: Vec<Txid>,
+    pub merkle: Vec<MalFixTxid>,
     pub pos: usize,
 }
 
 #[derive(Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct OutputStatus {
     pub spent: bool,
-    pub txid: Option<Txid>,
+    pub txid: Option<MalFixTxid>,
     pub vin: Option<u64>,
     pub status: Option<TxStatus>,
 }
@@ -68,7 +68,7 @@ pub struct BlockStatus {
 
 #[derive(Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Tx {
-    pub txid: Txid,
+    pub txid: MalFixTxid,
     pub version: i32,
     pub locktime: u32,
     pub vin: Vec<Vin>,

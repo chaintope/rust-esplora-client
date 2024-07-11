@@ -23,9 +23,7 @@ use minreq::{Proxy, Request};
 use tapyrus::consensus::{deserialize, serialize, Decodable};
 use tapyrus::hashes::{sha256, Hash};
 use tapyrus::hex::{DisplayHex, FromHex};
-use tapyrus::{
-    block::Header as BlockHeader, Block, BlockHash, MerkleBlock, Script, Transaction, Txid,
-};
+use tapyrus::{block::Header as BlockHeader, Block, BlockHash, MerkleBlock, Script, Transaction, MalFixTxid};
 
 use crate::{BlockStatus, BlockSummary, Builder, Error, MerkleProof, OutputStatus, Tx, TxStatus};
 
@@ -91,7 +89,7 @@ impl BlockingClient {
         }
     }
 
-    fn get_opt_response_txid(&self, path: &str) -> Result<Option<Txid>, Error> {
+    fn get_opt_response_txid(&self, path: &str) -> Result<Option<MalFixTxid>, Error> {
         match self.get_request(path)?.send() {
             Ok(resp) if is_status_not_found(resp.status_code) => Ok(None),
             Ok(resp) if !is_status_ok(resp.status_code) => {
@@ -100,7 +98,7 @@ impl BlockingClient {
                 Err(Error::HttpResponse { status, message })
             }
             Ok(resp) => Ok(Some(
-                Txid::from_str(resp.as_str().map_err(Error::Minreq)?).map_err(Error::HexToArray)?,
+                MalFixTxid::from_str(resp.as_str().map_err(Error::Minreq)?).map_err(Error::HexToArray)?,
             )),
             Err(e) => Err(Error::Minreq(e)),
         }
@@ -185,13 +183,13 @@ impl BlockingClient {
         }
     }
 
-    /// Get a [`Transaction`] option given its [`Txid`]
-    pub fn get_tx(&self, txid: &Txid) -> Result<Option<Transaction>, Error> {
+    /// Get a [`Transaction`] option given its [`MalFixTxid`]
+    pub fn get_tx(&self, txid: &MalFixTxid) -> Result<Option<Transaction>, Error> {
         self.get_opt_response(&format!("/tx/{}/raw", txid))
     }
 
-    /// Get a [`Transaction`] given its [`Txid`].
-    pub fn get_tx_no_opt(&self, txid: &Txid) -> Result<Transaction, Error> {
+    /// Get a [`Transaction`] given its [`MalFixTxid`].
+    pub fn get_tx_no_opt(&self, txid: &MalFixTxid) -> Result<Transaction, Error> {
         match self.get_tx(txid) {
             Ok(Some(tx)) => Ok(tx),
             Ok(None) => Err(Error::TransactionNotFound(*txid)),
@@ -199,22 +197,22 @@ impl BlockingClient {
         }
     }
 
-    /// Get a [`Txid`] of a transaction given its index in a block with a given hash.
+    /// Get a [`MalFixTxid`] of a transaction given its index in a block with a given hash.
     pub fn get_txid_at_block_index(
         &self,
         block_hash: &BlockHash,
         index: usize,
-    ) -> Result<Option<Txid>, Error> {
+    ) -> Result<Option<MalFixTxid>, Error> {
         self.get_opt_response_txid(&format!("/block/{}/txid/{}", block_hash, index))
     }
 
-    /// Get the status of a [`Transaction`] given its [`Txid`].
-    pub fn get_tx_status(&self, txid: &Txid) -> Result<TxStatus, Error> {
+    /// Get the status of a [`Transaction`] given its [`MalFixTxid`].
+    pub fn get_tx_status(&self, txid: &MalFixTxid) -> Result<TxStatus, Error> {
         self.get_response_json(&format!("/tx/{}/status", txid))
     }
 
-    /// Get transaction info given it's [`Txid`].
-    pub fn get_tx_info(&self, txid: &Txid) -> Result<Option<Tx>, Error> {
+    /// Get transaction info given it's [`MalFixTxid`].
+    pub fn get_tx_info(&self, txid: &MalFixTxid) -> Result<Option<Tx>, Error> {
         self.get_opt_response_json(&format!("/tx/{}", txid))
     }
 
@@ -233,20 +231,20 @@ impl BlockingClient {
         self.get_opt_response(&format!("/block/{}/raw", block_hash))
     }
 
-    /// Get a merkle inclusion proof for a [`Transaction`] with the given [`Txid`].
-    pub fn get_merkle_proof(&self, txid: &Txid) -> Result<Option<MerkleProof>, Error> {
+    /// Get a merkle inclusion proof for a [`Transaction`] with the given [`MalFixTxid`].
+    pub fn get_merkle_proof(&self, txid: &MalFixTxid) -> Result<Option<MerkleProof>, Error> {
         self.get_opt_response_json(&format!("/tx/{}/merkle-proof", txid))
     }
 
-    /// Get a [`MerkleBlock`] inclusion proof for a [`Transaction`] with the given [`Txid`].
-    pub fn get_merkle_block(&self, txid: &Txid) -> Result<Option<MerkleBlock>, Error> {
+    /// Get a [`MerkleBlock`] inclusion proof for a [`Transaction`] with the given [`MalFixTxid`].
+    pub fn get_merkle_block(&self, txid: &MalFixTxid) -> Result<Option<MerkleBlock>, Error> {
         self.get_opt_response_hex(&format!("/tx/{}/merkleblock-proof", txid))
     }
 
-    /// Get the spending status of an output given a [`Txid`] and the output index.
+    /// Get the spending status of an output given a [`MalFixTxid`] and the output index.
     pub fn get_output_status(
         &self,
-        txid: &Txid,
+        txid: &MalFixTxid,
         index: u64,
     ) -> Result<Option<OutputStatus>, Error> {
         self.get_opt_response_json(&format!("/tx/{}/outspend/{}", txid, index))
@@ -311,7 +309,7 @@ impl BlockingClient {
     pub fn scripthash_txs(
         &self,
         script: &Script,
-        last_seen: Option<Txid>,
+        last_seen: Option<MalFixTxid>,
     ) -> Result<Vec<Tx>, Error> {
         let script_hash = sha256::Hash::hash(script.as_bytes());
         let path = match last_seen {

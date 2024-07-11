@@ -17,9 +17,7 @@ use std::str::FromStr;
 use tapyrus::consensus::{deserialize, serialize};
 use tapyrus::hashes::{sha256, Hash};
 use tapyrus::hex::{DisplayHex, FromHex};
-use tapyrus::{
-    block::Header as BlockHeader, Block, BlockHash, MerkleBlock, Script, Transaction, Txid,
-};
+use tapyrus::{block::Header as BlockHeader, Block, BlockHash, MerkleBlock, Script, Transaction, MalFixTxid};
 
 #[allow(unused_imports)]
 use log::{debug, error, info, trace};
@@ -69,8 +67,8 @@ impl AsyncClient {
         AsyncClient { url, client }
     }
 
-    /// Get a [`Transaction`] option given its [`Txid`]
-    pub async fn get_tx(&self, txid: &Txid) -> Result<Option<Transaction>, Error> {
+    /// Get a [`Transaction`] option given its [`MalFixTxid`]
+    pub async fn get_tx(&self, txid: &MalFixTxid) -> Result<Option<Transaction>, Error> {
         let resp = self
             .client
             .get(&format!("{}/tx/{}/raw", self.url, txid))
@@ -91,8 +89,8 @@ impl AsyncClient {
         }
     }
 
-    /// Get a [`Transaction`] given its [`Txid`].
-    pub async fn get_tx_no_opt(&self, txid: &Txid) -> Result<Transaction, Error> {
+    /// Get a [`Transaction`] given its [`MalFixTxid`].
+    pub async fn get_tx_no_opt(&self, txid: &MalFixTxid) -> Result<Transaction, Error> {
         match self.get_tx(txid).await {
             Ok(Some(tx)) => Ok(tx),
             Ok(None) => Err(Error::TransactionNotFound(*txid)),
@@ -100,12 +98,12 @@ impl AsyncClient {
         }
     }
 
-    /// Get a [`Txid`] of a transaction given its index in a block with a given hash.
+    /// Get a [`MalFixTxid`] of a transaction given its index in a block with a given hash.
     pub async fn get_txid_at_block_index(
         &self,
         block_hash: &BlockHash,
         index: usize,
-    ) -> Result<Option<Txid>, Error> {
+    ) -> Result<Option<MalFixTxid>, Error> {
         let resp = self
             .client
             .get(&format!("{}/block/{}/txid/{}", self.url, block_hash, index))
@@ -122,12 +120,12 @@ impl AsyncClient {
                 message: resp.text().await?,
             })
         } else {
-            Ok(Some(Txid::from_str(&resp.text().await?)?))
+            Ok(Some(MalFixTxid::from_str(&resp.text().await?)?))
         }
     }
 
-    /// Get the status of a [`Transaction`] given its [`Txid`].
-    pub async fn get_tx_status(&self, txid: &Txid) -> Result<TxStatus, Error> {
+    /// Get the status of a [`Transaction`] given its [`MalFixTxid`].
+    pub async fn get_tx_status(&self, txid: &MalFixTxid) -> Result<TxStatus, Error> {
         let resp = self
             .client
             .get(&format!("{}/tx/{}/status", self.url, txid))
@@ -143,8 +141,8 @@ impl AsyncClient {
         }
     }
 
-    /// Get transaction info given it's [`Txid`].
-    pub async fn get_tx_info(&self, txid: &Txid) -> Result<Option<Tx>, Error> {
+    /// Get transaction info given it's [`MalFixTxid`].
+    pub async fn get_tx_info(&self, txid: &MalFixTxid) -> Result<Option<Tx>, Error> {
         let resp = self
             .client
             .get(&format!("{}/tx/{}", self.url, txid))
@@ -222,8 +220,8 @@ impl AsyncClient {
         }
     }
 
-    /// Get a merkle inclusion proof for a [`Transaction`] with the given [`Txid`].
-    pub async fn get_merkle_proof(&self, tx_hash: &Txid) -> Result<Option<MerkleProof>, Error> {
+    /// Get a merkle inclusion proof for a [`Transaction`] with the given [`MalFixTxid`].
+    pub async fn get_merkle_proof(&self, tx_hash: &MalFixTxid) -> Result<Option<MerkleProof>, Error> {
         let resp = self
             .client
             .get(&format!("{}/tx/{}/merkle-proof", self.url, tx_hash))
@@ -244,8 +242,8 @@ impl AsyncClient {
         }
     }
 
-    /// Get a [`MerkleBlock`] inclusion proof for a [`Transaction`] with the given [`Txid`].
-    pub async fn get_merkle_block(&self, tx_hash: &Txid) -> Result<Option<MerkleBlock>, Error> {
+    /// Get a [`MerkleBlock`] inclusion proof for a [`Transaction`] with the given [`MalFixTxid`].
+    pub async fn get_merkle_block(&self, tx_hash: &MalFixTxid) -> Result<Option<MerkleBlock>, Error> {
         let resp = self
             .client
             .get(&format!("{}/tx/{}/merkleblock-proof", self.url, tx_hash))
@@ -267,10 +265,10 @@ impl AsyncClient {
         }
     }
 
-    /// Get the spending status of an output given a [`Txid`] and the output index.
+    /// Get the spending status of an output given a [`MalFixTxid`] and the output index.
     pub async fn get_output_status(
         &self,
-        txid: &Txid,
+        txid: &MalFixTxid,
         index: u64,
     ) -> Result<Option<OutputStatus>, Error> {
         let resp = self
@@ -376,7 +374,7 @@ impl AsyncClient {
     pub async fn scripthash_txs(
         &self,
         script: &Script,
-        last_seen: Option<Txid>,
+        last_seen: Option<MalFixTxid>,
     ) -> Result<Vec<Tx>, Error> {
         let script_hash = sha256::Hash::hash(script.as_bytes());
         let url = match last_seen {
