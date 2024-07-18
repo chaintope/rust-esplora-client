@@ -71,7 +71,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::num::TryFromIntError;
 
-use tapyrus::consensus;
+use tapyrus::{consensus, MalFixTxid};
 
 pub mod api;
 
@@ -185,7 +185,7 @@ pub enum Error {
     /// Invalid hex data returned (attempting to create a vector)
     HexToBytes(tapyrus::hex::HexToBytesError),
     /// Transaction not found
-    TransactionNotFound(Txid),
+    TransactionNotFound(MalFixTxid),
     /// Header height not found
     HeaderHeightNotFound(u32),
     /// Header hash not found
@@ -235,8 +235,7 @@ mod test {
     #[cfg(all(feature = "blocking", feature = "async"))]
     use {
         electrsd::{
-            electrum_client::ElectrumApi, tapyrusd::tapyruscore_rpc::json::AddressType,
-            tapyrusd::tapyruscore_rpc::RpcApi,
+            electrum_client::ElectrumApi, tapyrusd::tapyruscore_rpc::RpcApi,
         },
         std::time::Duration,
         tapyrus::hashes::Hash,
@@ -493,7 +492,7 @@ mod test {
         assert!(tx_status.confirmed);
 
         // Bogus txid returns a TxStatus with false, None, None, None
-        let txid = Txid::hash(b"ayyyy lmao");
+        let txid = MalFixTxid::hash(b"ayyyy lmao");
         let tx_status = blocking_client.get_tx_status(&txid).unwrap();
         let tx_status_async = async_client.get_tx_status(&txid).await.unwrap();
         assert_eq!(tx_status, tx_status_async);
@@ -554,7 +553,7 @@ mod test {
         assert_eq!(tx_info.status.block_hash, tx_res.info.blockhash);
         assert_eq!(tx_info.status.block_time, tx_res.info.blocktime);
 
-        let txid = Txid::hash(b"not exist");
+        let txid = MalFixTxid::hash(b"not exist");
         assert_eq!(blocking_client.get_tx_info(&txid).unwrap(), None);
         assert_eq!(async_client.get_tx_info(&txid).await.unwrap(), None);
     }
@@ -744,7 +743,7 @@ mod test {
         let merkle_block_async = async_client.get_merkle_block(&txid).await.unwrap().unwrap();
         assert_eq!(merkle_block, merkle_block_async);
 
-        let mut matches = vec![txid];
+        let mut matches = vec![Txid::from_byte_array(txid.to_byte_array())];
         let mut indexes = vec![];
         let root = merkle_block
             .txn
@@ -887,13 +886,13 @@ mod test {
             .transaction()
             .unwrap();
         let script = &expected_tx.output[0].script_pubkey;
-        let scripthash_txs_txids: Vec<Txid> = blocking_client
+        let scripthash_txs_txids: Vec<MalFixTxid> = blocking_client
             .scripthash_txs(script, None)
             .unwrap()
             .iter()
             .map(|tx| tx.txid)
             .collect();
-        let scripthash_txs_txids_async: Vec<Txid> = async_client
+        let scripthash_txs_txids_async: Vec<MalFixTxid> = async_client
             .scripthash_txs(script, None)
             .await
             .unwrap()
